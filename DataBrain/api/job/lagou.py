@@ -1,7 +1,7 @@
 """
 @author: Jim
 @project: DataBrain
-@file: lagou.py
+@file: job.py
 @time: 2020/10/5 11:52
 @desc:  
     

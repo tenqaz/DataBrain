@@ -1,7 +1,7 @@
 """
 @author: Jim
 @project: DataBrain
-@file: lagou.py
+@file: job.py
 @time: 2020/10/5 14:12
 @desc:  
     
@@ -12,7 +12,7 @@ import datetime
 from pyecharts import options as opts
 from pyecharts.charts import Pie, Bar
 
-from models.lagou import BaseLagouModel
+from models.job import BaseJobModel
 
 
 def create_publish_num_pie(publish_num):
@@ -20,7 +20,7 @@ def create_publish_num_pie(publish_num):
 
     """
 
-    pie_data = BaseLagouModel.publish_num(publish_num)
+    pie_data = BaseJobModel.publish_num(publish_num)
 
     c = Pie(init_opts=opts.InitOpts(width="1600px", height="800px", bg_color="#2c343c")).add(
         series_name="{}编程语言发布数量".format(publish_num),
@@ -49,7 +49,7 @@ def create_publish_num_pie(publish_num):
 
 def create_avg_salary(publish_time):
 
-    results = BaseLagouModel.avg_salary(publish_time)
+    results = BaseJobModel.avg_salary(publish_time)
 
     keywords = []
     low_salarys = []

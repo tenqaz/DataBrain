@@ -10,3 +10,4 @@
 
 class Config:
     MONGODB_DB = "DataBrain"
+    APPLICATION_ROOT = "/api"

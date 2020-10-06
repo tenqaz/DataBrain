@@ -10,7 +10,6 @@
 import datetime
 import platform
 import re
-from collections import namedtuple
 
 from loguru import logger
 from pyquery import PyQuery as pq
@@ -22,8 +21,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from core.exceptions import StopException
-from models.lagou import BaseLagou
-
+from models.job import BaseJob, JobSourceEnum
 
 
 class LagouCrawler:
@@ -58,7 +56,6 @@ class LagouCrawler:
 
         """
         html = self.__driver.page_source
-        doc = pq(html)
 
         # 可能有弹窗，关闭
         try:
@@ -154,12 +151,12 @@ class LagouCrawler:
         company_size = doc("#job_company > dd > ul > li:nth-child(3) > h4").text()  # 规模
         company_index = doc("#job_company > dd > ul > li:nth-child(4) > a").text()  # 网址
 
-        BaseLagou(name=name, low_salary=low_salary, high_salary=high_salary, salary_num=salary_num, city=city,
-                  work_experience=work_experience, education=education, job_detail=job_detail,
-                  publish_time=publish_time, work_type=work_type, tags=tags, work_city=work_city,
-                  work_district=work_district, work_area=work_area, company_name=company_name,
-                  company_domain=company_domain, company_develop_level=company_develop_level, company_size=company_size,
-                  company_index=company_index, keyword=self.__query).save()
+        BaseJob(name=name, low_salary=low_salary, high_salary=high_salary, salary_num=salary_num, city=city,
+                work_experience=work_experience, education=education, job_detail=job_detail,
+                publish_time=publish_time, work_type=work_type, tags=tags, work_city=work_city,
+                work_district=work_district, work_area=work_area, company_name=company_name,
+                company_domain=company_domain, company_develop_level=company_develop_level, company_size=company_size,
+                company_index=company_index, keyword=self.__query, origin=JobSourceEnum.LAGOU.value).save()
 
     def crawler(self):
         logger.debug("crawler {}".format(self.__query))

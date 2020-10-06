@@ -8,11 +8,17 @@
 """
 
 import datetime
+from enum import Enum
 
 from mongoengine import Document, StringField, IntField, ListField, DateTimeField, DateField
 
 
-class BaseLagou(Document):
+class JobSourceEnum(Enum):
+    LAGOU = "lagou"
+    BOSS = "boss"
+
+
+class BaseJob(Document):
     name = StringField()
     low_salary = IntField()
     high_salary = IntField()
@@ -33,10 +39,11 @@ class BaseLagou(Document):
     company_size = StringField()
     company_index = StringField()
     keyword = StringField()
+    origin = StringField()
     create_time = DateTimeField(default=datetime.datetime.utcnow)
 
 
-class BaseLagouModel:
+class BaseJobModel:
 
     @staticmethod
     def publish_num(publish_time):
@@ -57,7 +64,7 @@ class BaseLagouModel:
             }
         ]
 
-        results = BaseLagou.objects(publish_time=publish_time).aggregate(pipline)
+        results = BaseJob.objects(publish_time=publish_time).aggregate(pipline)
 
         data = [(record['_id'], record['num']) for record in results]
         return data
@@ -82,7 +89,7 @@ class BaseLagouModel:
             }
         ]
 
-        results = BaseLagou.objects(publish_time=publish_time).aggregate(pipline)
+        results = BaseJob.objects(publish_time=publish_time).aggregate(pipline)
 
         return results
 
@@ -93,5 +100,5 @@ if __name__ == '__main__':
     connect("DataBrain")
     now_day = str(datetime.date.today())
 
-    print(list(BaseLagouModel.avg_salary(now_day)))
-    print(list(BaseLagouModel.publish_num(now_day)))
+    print(list(BaseJobModel.avg_salary(now_day)))
+    print(list(BaseJobModel.publish_num(now_day)))

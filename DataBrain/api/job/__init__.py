@@ -16,4 +16,4 @@ from . import lagou
 def init_blueprint_job(app: Flask):
     job_blu = Blueprint("job", __name__)
     lagou.api.register(job_blu)
-    app.register_blueprint(job_blu, url_prefix="/job")
+    app.register_blueprint(job_blu, url_prefix="/databrain/api/job")
