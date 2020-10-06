@@ -13,7 +13,7 @@ import platform
 from core.setting import Config
 from crawler.lagou import LagouCrawler
 
-if platform.system == "Linux":
+if platform.system() == "Linux":
     logger.add("/var/log/DataBrain.log")
 
 connect(Config.MONGODB_DB)
