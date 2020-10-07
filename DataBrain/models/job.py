@@ -40,6 +40,7 @@ class BaseJob(Document):
     company_index = StringField()
     keyword = StringField()
     origin = StringField()
+    page_id = StringField()  # 页面id
     create_time = DateTimeField(default=datetime.datetime.utcnow)
 
 
@@ -93,6 +94,18 @@ class BaseJobModel:
 
         return results
 
+    @staticmethod
+    def get_page_ids_by_publish_time(publish_time):
+        """ 获取
+
+        Returns:
+
+        """
+        results = BaseJob.objects(publish_time=publish_time)
+
+        return [record['page_id'] for record in results]
+
+
 
 if __name__ == '__main__':
     from mongoengine import connect
@@ -102,3 +115,5 @@ if __name__ == '__main__':
 
     print(list(BaseJobModel.avg_salary(now_day)))
     print(list(BaseJobModel.publish_num(now_day)))
+
+

@@ -21,7 +21,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from core.exceptions import StopException
-from models.job import BaseJob, JobSourceEnum
+from models.job import BaseJob, JobSourceEnum, BaseJobModel
 
 
 class LagouCrawler:
@@ -35,6 +35,9 @@ class LagouCrawler:
         self.__cur_page = 1
         self.__options = None
         self.__init_options()
+
+        today = datetime.date.today()
+        self.__exist_page_ids = BaseJobModel.get_page_ids_by_publish_time(today)
 
         self.__driver = webdriver.Chrome(options=self.__options)
 
@@ -55,7 +58,6 @@ class LagouCrawler:
         """ 解析列表
 
         """
-        html = self.__driver.page_source
 
         # 可能有弹窗，关闭
         try:
@@ -79,7 +81,11 @@ class LagouCrawler:
         """ 下一页
 
         """
-        WebDriverWait(self.__driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, "pager_next")))
+        try:
+            WebDriverWait(self.__driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, "pager_next")))
+        except exceptions.TimeoutException:
+            logger.debug("没有找到下一页")
+            raise StopException()
 
         try:
             self.__driver.find_element_by_class_name("pager_next_disabled")
@@ -98,6 +104,12 @@ class LagouCrawler:
 
         WebDriverWait(self.__driver, 2).until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, "body > div.position-head > div > div.position-content-l > div > h1 > span > span")))
+
+        page_id = re.search("/jobs/(.*?).html", self.__driver.current_url).group(1)
+        logger.debug("正在爬取page_id = {}".format(page_id))
+        if page_id in self.__exist_page_ids:
+            logger.debug("page_id = {} 已爬取过，停止该keyword爬取".format(page_id))
+            raise StopException()
 
         page_html = self.__driver.page_source
         doc = pq(page_html)
@@ -156,7 +168,8 @@ class LagouCrawler:
                 publish_time=publish_time, work_type=work_type, tags=tags, work_city=work_city,
                 work_district=work_district, work_area=work_area, company_name=company_name,
                 company_domain=company_domain, company_develop_level=company_develop_level, company_size=company_size,
-                company_index=company_index, keyword=self.__query, origin=JobSourceEnum.LAGOU.value).save()
+                company_index=company_index, keyword=self.__query, origin=JobSourceEnum.LAGOU.value,
+                page_id=page_id).save()
 
     def crawler(self):
         logger.debug("crawler {}".format(self.__query))
