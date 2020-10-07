@@ -27,6 +27,7 @@ from models.job import BaseJob, JobSourceEnum, BaseJobModel
 class LagouCrawler:
     URL = "https://www.lagou.com/jobs/list_{}/p-city_215?px=new"
     TODAY = True  # 仅爬取当天发布的
+    TIMEOUT = 5
 
     def __init__(self, query):
         self.__query = query
@@ -40,9 +41,6 @@ class LagouCrawler:
         self.__exist_page_ids = BaseJobModel.get_page_ids_by_publish_time(today)
 
         self.__driver = webdriver.Chrome(options=self.__options)
-
-    def __del__(self):
-        self.__driver.quit()
 
     def __init_options(self):
         """ 初始化chrome配置
@@ -61,7 +59,7 @@ class LagouCrawler:
 
         # 可能有弹窗，关闭
         try:
-            WebDriverWait(self.__driver, 1).until(EC.presence_of_element_located(
+            WebDriverWait(self.__driver, self.TIMEOUT).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "body > div.body-container.showData > div > div.body-btn")))
             self.__driver.find_element_by_css_selector(
                 "body > div.body-container.showData > div > div.body-btn").click()
@@ -82,7 +80,8 @@ class LagouCrawler:
 
         """
         try:
-            WebDriverWait(self.__driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, "pager_next")))
+            WebDriverWait(self.__driver, self.TIMEOUT).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "pager_next")))
         except exceptions.TimeoutException:
             logger.debug("没有找到下一页")
             raise StopException()
@@ -102,8 +101,12 @@ class LagouCrawler:
 
         """
 
-        WebDriverWait(self.__driver, 2).until(EC.presence_of_element_located(
-            (By.CSS_SELECTOR, "body > div.position-head > div > div.position-content-l > div > h1 > span > span")))
+        try:
+            WebDriverWait(self.__driver, self.TIMEOUT).until(EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "body > div.position-head > div > div.position-content-l > div > h1 > span > span")))
+        except exceptions.TimeoutException:
+            logger.debug("page_id = {} 没有加载")
+            return
 
         page_id = re.search("/jobs/(.*?).html", self.__driver.current_url).group(1)
         logger.debug("正在爬取page_id = {}".format(page_id))
@@ -184,6 +187,8 @@ class LagouCrawler:
                 self.__next_page()
             except StopException:
                 break
+
+        self.__driver.quit()
 
 
 if __name__ == '__main__':
