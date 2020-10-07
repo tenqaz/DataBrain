@@ -106,7 +106,6 @@ class BaseJobModel:
         return [record['page_id'] for record in results]
 
 
-
 if __name__ == '__main__':
     from mongoengine import connect
 
@@ -115,5 +114,3 @@ if __name__ == '__main__':
 
     print(list(BaseJobModel.avg_salary(now_day)))
     print(list(BaseJobModel.publish_num(now_day)))
-
-

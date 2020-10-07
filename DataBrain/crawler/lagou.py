@@ -8,12 +8,10 @@
 """
 
 import datetime
-import platform
 import re
 
 from loguru import logger
 from pyquery import PyQuery as pq
-from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -21,36 +19,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from core.exceptions import StopException
+from crawler.base_crawler import BaseCrawler
 from models.job import BaseJob, JobSourceEnum, BaseJobModel
 
 
-class LagouCrawler:
+class LagouCrawler(BaseCrawler):
     URL = "https://www.lagou.com/jobs/list_{}/p-city_215?px=new"
     TODAY = True  # 仅爬取当天发布的
     TIMEOUT = 5
 
     def __init__(self, query):
-        self.__query = query
-
-        self.__url = self.URL.format(query)
-        self.__cur_page = 1
-        self.__options = None
-        self.__init_options()
+        super().__init__(query)
 
         today = datetime.date.today()
         self.__exist_page_ids = BaseJobModel.get_page_ids_by_publish_time(today)
-
-        self.__driver = webdriver.Chrome(options=self.__options)
-
-    def __init_options(self):
-        """ 初始化chrome配置
-
-        """
-        if platform.system() == "Linux":
-            self.__options = webdriver.ChromeOptions()
-            self.__options.add_argument('headless')  # 浏览器不提供可视化页面
-            self.__options.add_argument('no-sandbox')  # 解决DevToolsActivePort文件不存在的报错
-            self.__options.add_argument('blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
 
     def __parse_list(self):
         """ 解析列表
@@ -59,42 +41,42 @@ class LagouCrawler:
 
         # 可能有弹窗，关闭
         try:
-            WebDriverWait(self.__driver, self.TIMEOUT).until(EC.presence_of_element_located(
+            WebDriverWait(self._driver, self.TIMEOUT).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "body > div.body-container.showData > div > div.body-btn")))
-            self.__driver.find_element_by_css_selector(
+            self._driver.find_element_by_css_selector(
                 "body > div.body-container.showData > div > div.body-btn").click()
         except exceptions.TimeoutException:
             pass
 
         # 进入详细页
-        for record in self.__driver.find_elements_by_css_selector(".item_con_list .position_link"):
+        for record in self._driver.find_elements_by_css_selector(".item_con_list .position_link"):
             record.send_keys(Keys.ENTER)
 
-            self.__driver.switch_to.window(self.__driver.window_handles[-1])
+            self._driver.switch_to.window(self._driver.window_handles[-1])
             self.__detail_page()
-            self.__driver.close()
-            self.__driver.switch_to.window(self.__driver.window_handles[0])
+            self._driver.close()
+            self._driver.switch_to.window(self._driver.window_handles[0])
 
     def __next_page(self):
         """ 下一页
 
         """
         try:
-            WebDriverWait(self.__driver, self.TIMEOUT).until(
+            WebDriverWait(self._driver, self.TIMEOUT).until(
                 EC.presence_of_element_located((By.CLASS_NAME, "pager_next")))
         except exceptions.TimeoutException:
             logger.debug("没有找到下一页")
             raise StopException()
 
         try:
-            self.__driver.find_element_by_class_name("pager_next_disabled")
+            self._driver.find_element_by_class_name("pager_next_disabled")
         except exceptions.NoSuchElementException:
             pass
         else:
             raise StopException()
 
-        self.__driver.find_element_by_css_selector(".pager_next").click()
-        self.__cur_page += 1
+        self._driver.find_element_by_css_selector(".pager_next").click()
+        self._cur_page += 1
 
     def __detail_page(self):
         """ 跳转到细节页
@@ -102,19 +84,19 @@ class LagouCrawler:
         """
 
         try:
-            WebDriverWait(self.__driver, self.TIMEOUT).until(EC.presence_of_element_located(
+            WebDriverWait(self._driver, self.TIMEOUT).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "body > div.position-head > div > div.position-content-l > div > h1 > span > span")))
         except exceptions.TimeoutException:
             logger.debug("page_id = {} 没有加载")
             return
 
-        page_id = re.search("/jobs/(.*?).html", self.__driver.current_url).group(1)
+        page_id = re.search("/jobs/(.*?).html", self._driver.current_url).group(1)
         logger.debug("正在爬取page_id = {}".format(page_id))
         if page_id in self.__exist_page_ids:
             logger.debug("page_id = {} 已爬取过，停止该keyword爬取".format(page_id))
             raise StopException()
 
-        page_html = self.__driver.page_source
+        page_html = self._driver.page_source
         doc = pq(page_html)
 
         publish_time = doc("body > div.position-head > div > div.position-content-l > dd > p").text()  # 发布时间
@@ -172,16 +154,16 @@ class LagouCrawler:
                 publish_time=publish_time, work_type=work_type, tags=tags, work_city=work_city,
                 work_district=work_district, work_area=work_area, company_name=company_name,
                 company_domain=company_domain, company_develop_level=company_develop_level, company_size=company_size,
-                company_index=company_index, keyword=self.__query, origin=JobSourceEnum.LAGOU.value,
+                company_index=company_index, keyword=self._query, origin=JobSourceEnum.LAGOU.value,
                 page_id=page_id).save()
 
     def crawler(self):
-        logger.debug("crawler {}".format(self.__query))
+        logger.debug("crawler {}".format(self._query))
         # 首页
-        self.__driver.get(self.__url)
+        self._driver.get(self._url)
 
         while True:
-            logger.debug("cur_page = {}".format(self.__cur_page))
+            logger.debug("cur_page = {}".format(self._cur_page))
 
             try:
                 self.__parse_list()
@@ -189,9 +171,4 @@ class LagouCrawler:
             except StopException:
                 break
 
-        self.__driver.quit()
-
-
-if __name__ == '__main__':
-    lagou_crawler = LagouCrawler("python")
-    lagou_crawler.crawler()
+        self._driver.quit()
