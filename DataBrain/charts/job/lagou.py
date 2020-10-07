@@ -57,21 +57,22 @@ def create_avg_salary(publish_time):
     avg_salary = []
     for record in results:
         keywords.append(record['_id'])
-        low_salarys.append(record["low_salary"])
-        high_salarys.append(record['high_salary'])
-        avg_salary.append((record["low_salary"] + record['high_salary']) / 2)
+        low_salarys.append(round(record["low_salary"], 2))
+        high_salarys.append(round(record['high_salary'], 2))
+        avg_salary.append(round((record["low_salary"] + record['high_salary']) / 2, 2))
 
     c = (
         Bar().add_xaxis(
             keywords
         ).add_yaxis(
-            "最低平均工资", low_salarys
+            "最低平均工资", low_salarys,
         ).add_yaxis(
-            "最高平均工资", high_salarys
+            "最高平均工资", high_salarys,
         ).add_yaxis(
-            "平均工资", avg_salary
+            "平均工资", avg_salary,
         ).set_global_opts(
             xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=-15)),
+            yaxis_opts=opts.AxisOpts(name="薪资(/k)"),
             title_opts=opts.TitleOpts(title="{} 各个编程语言的平均工资".format(publish_time), subtitle=""),
         )
     )
