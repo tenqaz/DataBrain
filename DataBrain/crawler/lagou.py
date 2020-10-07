@@ -122,6 +122,7 @@ class LagouCrawler:
         if ":" in publish_time:
             publish_time = str(datetime.date.today())
         elif self.TODAY:
+            logger.debug("不是该天的数据，停止")
             raise StopException()
 
         # 职位名称
