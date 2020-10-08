@@ -8,9 +8,9 @@
 """
 
 import datetime
-import re
 
 from loguru import logger
+from parse import search
 from pyquery import PyQuery as pq
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
@@ -90,7 +90,7 @@ class LagouCrawler(BaseCrawler):
             logger.debug("page_id = {} 没有加载")
             return
 
-        page_id = re.search("/jobs/(.*?).html", self._driver.current_url).group(1)
+        page_id = search("/jobs/{page_id}.html", self._driver.current_url)['page_id']
         logger.debug("正在爬取page_id = {}".format(page_id))
         if page_id in self.__exist_page_ids:
             logger.debug("page_id = {} 已爬取过，停止该keyword爬取".format(page_id))
@@ -100,9 +100,11 @@ class LagouCrawler(BaseCrawler):
         doc = pq(page_html)
 
         publish_time = doc("body > div.position-head > div > div.position-content-l > dd > p").text()  # 发布时间
-        publish_time = re.match("(.*?)发布于", publish_time).group(1).strip()
+        publish_time = search("{:^}发布于", publish_time)[0]
         if ":" in publish_time:
             publish_time = str(datetime.date.today())
+        elif self._driver.find_elements_by_class_name("wise-icon"):   # 如果是急招，则跳过本条
+            return
         elif self.TODAY:
             logger.debug("不是该天的数据，停止")
             raise StopException()

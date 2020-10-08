@@ -13,6 +13,7 @@ loguru = "^0.5.3"
 selenium = "^3.141.0"
 mongoengine = "^0.20.0"
 flask_cors = "^3.0.9"
+parse = "^1.18.0"
 
 [tool.poetry.dev-dependencies]
 

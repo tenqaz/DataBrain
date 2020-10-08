@@ -126,6 +126,14 @@ pymongo = ">=3.4,<4.0"
 
 [[package]]
 category = "main"
+description = "parse() is the opposite of format()"
+name = "parse"
+optional = false
+python-versions = "*"
+version = "1.18.0"
+
+[[package]]
+category = "main"
 description = "A simple Python library for easily displaying tabular data in a visually appealing ASCII table format"
 name = "prettytable"
 optional = false
@@ -260,7 +268,7 @@ version = "1.0.3"
 dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 
 [metadata]
-content-hash = "f0a23ab1f57ef69bf2fd47de1561f550f030b49e953f5afcc9ebede520a24359"
+content-hash = "c924a974646310bba432b2490a90e5ea225ef552bd102f90a6bd9de31730d2c9"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -368,6 +376,9 @@ markupsafe = [
 mongoengine = [
     {file = "mongoengine-0.20.0-py3-none-any.whl", hash = "sha256:6e127f45f71c2bc5e72461ec297a0c20f04c3ee0bf6dd869e336226e325db6ef"},
     {file = "mongoengine-0.20.0.tar.gz", hash = "sha256:db9e5d587e5d74e52851e0e4a53fd744725bfa9918ae6070139f5ba9c62c6edf"},
+]
+parse = [
+    {file = "parse-1.18.0.tar.gz", hash = "sha256:91666032d6723dc5905248417ef0dc9e4c51df9526aaeef271eacad6491f06a4"},
 ]
 prettytable = [
     {file = "prettytable-1.0.0-py2.py3-none-any.whl", hash = "sha256:d3fa464010bf7fec9384d3ea1a1e14398a9e3f2f0c5d052219366897bf6cb19c"},
