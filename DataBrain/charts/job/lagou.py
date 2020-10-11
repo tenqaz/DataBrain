@@ -15,15 +15,16 @@ from pyecharts.charts import Pie, Bar
 from models.job import BaseJobModel
 
 
-def create_publish_num_pie(publish_num):
+def create_publish_num_pie(publish_time):
     """ 创建昨日发布数量
 
     """
 
-    pie_data = BaseJobModel.publish_num(publish_num)
+    pie_data = BaseJobModel.publish_num(publish_time)
+    print(pie_data)
 
     c = Pie(init_opts=opts.InitOpts(width="1600px", height="800px", bg_color="#2c343c")).add(
-        series_name="{}编程语言发布数量".format(publish_num),
+        series_name="{}编程语言发布数量".format(publish_time),
         data_pair=pie_data,
         rosetype="radius",
         radius="55%",
@@ -31,7 +32,7 @@ def create_publish_num_pie(publish_num):
         label_opts=opts.LabelOpts(is_show=False, position="center"),
     ).set_global_opts(
         title_opts=opts.TitleOpts(
-            title="{}编程语言发布数量".format(publish_num),
+            title="{}编程语言发布数量".format(publish_time),
             pos_left="center",
             pos_top="20",
             title_textstyle_opts=opts.TextStyleOpts(color="#fff"),
@@ -48,6 +49,14 @@ def create_publish_num_pie(publish_num):
 
 
 def create_avg_salary(publish_time):
+    """ 薪资
+
+    Args:
+        publish_time:
+
+    Returns:
+
+    """
 
     results = BaseJobModel.avg_salary(publish_time)
 
@@ -76,4 +85,29 @@ def create_avg_salary(publish_time):
             title_opts=opts.TitleOpts(title="{} 各个编程语言的平均工资".format(publish_time), subtitle=""),
         )
     )
+    return c
+
+
+def company_publish_count_by_language(publish_time, language):
+    """ 公司发布
+
+    Args:
+        publish_time:
+        language:
+
+    Returns:
+
+    """
+    result = BaseJobModel.company_publish_count_by_language(publish_time, language)
+    c = (
+        Pie().add(
+            "{}-{}编程语言公司分布".format(publish_time, language),
+            result,
+            center=["40%", "50%"],
+        ).set_global_opts(
+            title_opts=opts.TitleOpts(title="{}-{}编程语言公司分布".format(publish_time, language)),
+            legend_opts=opts.LegendOpts(type_="scroll", pos_left="80%", orient="vertical"),
+        ).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+    )
+
     return c

@@ -64,8 +64,34 @@ class BaseJobModel:
                 }
             }
         ]
+        print(publish_time)
 
         results = BaseJob.objects(publish_time=publish_time).aggregate(pipline)
+
+        data = [(record['_id'], record['num']) for record in results]
+        return data
+
+    @staticmethod
+    def company_publish_count_by_language(publish_time, language):
+        """ 编程语言发布的岗位中，公司的数量
+
+        Args:
+            publish_time:
+            language:
+
+        Returns:
+
+        """
+        pipline = [
+            {
+                "$group": {
+                    "_id": "$company_name",
+                    "num": {"$sum": 1}
+                }
+            }
+        ]
+
+        results = BaseJob.objects(publish_time=publish_time, keyword=language).aggregate(pipline)
 
         data = [(record['_id'], record['num']) for record in results]
         return data
@@ -104,6 +130,8 @@ class BaseJobModel:
         results = BaseJob.objects(publish_time=publish_time)
 
         return [record['page_id'] for record in results]
+
+
 
 
 if __name__ == '__main__':

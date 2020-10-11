@@ -8,11 +8,19 @@
 </head>
 <body>
 
-<label for="date_info">日期：</label><input id="date_info" type="date" , onchange="load_data(value)"/>
+<label for="date_info">日期：</label><input id="date_info" type="date" onchange="load_data()"/>
+<select name="language" id="language" onchange="load_data()">
+     <option value="python" selected="selected">python</option>
+     <option value="java">java</option>
+     <option value="c++">c++</option>
+     <option value="php">php</option>
+     <option value="go">go</option>
+</select>
 每两个小时更新一次 深圳
 
 <div id="publish_num_pie" style="width: 100%; height:600px;"></div>
 <div id="avg_salary_bar" style="width: 100%; height:600px;"></div>
+<div id="publush_num_company" style="width: 100%; height:600px;"></div>
 <script>
     var domain = document.domain;
     console.log(domain);
@@ -21,9 +29,12 @@
         domain += ":5000"
     }
 
-    var base_url = "http://" + domain + "/databrain/api/job/lagou/"
+    var base_url = "http://" + domain + "/databrain/api/job/lagou/";
 
-    function load_data(publish_time) {
+    function load_data() {
+        var publish_time = $("#date_info").val();
+        var language = $("#language").val()
+
         var publish_num_pie = echarts.init(document.getElementById('publish_num_pie'), 'white', {renderer: 'canvas'});
         $.ajax({
             type: "GET",
@@ -43,6 +54,16 @@
                 avg_salary_bar.setOption(result);
             }
         });
+
+        var publush_num_company = echarts.init(document.getElementById('publush_num_company'), 'white', {renderer: 'canvas'});
+        $.ajax({
+            type: "GET",
+            url: base_url + "publush_num_company?publish_time=" + publish_time + "&language=" + language,
+            dataType: 'json',
+            success: function (result) {
+                publush_num_company.setOption(result);
+            }
+        });
     }
 
     function init_date_input() {
@@ -57,8 +78,8 @@
     }
 
     $(function () {
-        today = init_date_input();
-        load_data(today);
+        init_date_input();
+        load_data();
     })
 </script>
 </body>

@@ -82,15 +82,15 @@ class LagouCrawler(BaseCrawler):
         """ 跳转到细节页
 
         """
+        page_id = search("/jobs/{page_id}.html", self._driver.current_url)['page_id']
 
         try:
             WebDriverWait(self._driver, self.TIMEOUT).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "body > div.position-head > div > div.position-content-l > div > h1 > span > span")))
         except exceptions.TimeoutException:
-            logger.debug("page_id = {} 没有加载")
+            logger.debug("page_id = {} 没有加载".format(page_id))
             return
 
-        page_id = search("/jobs/{page_id}.html", self._driver.current_url)['page_id']
         logger.debug("正在爬取page_id = {}".format(page_id))
         if page_id in self.__exist_page_ids:
             logger.debug("page_id = {} 已爬取过，停止该keyword爬取".format(page_id))
@@ -103,7 +103,7 @@ class LagouCrawler(BaseCrawler):
         publish_time = search("{:^}发布于", publish_time)[0]
         if ":" in publish_time:
             publish_time = str(datetime.date.today())
-        elif self._driver.find_elements_by_class_name("wise-icon"):   # 如果是急招，则跳过本条
+        elif self._driver.find_elements_by_class_name("wise-icon"):  # 如果是急招，则跳过本条
             return
         elif self.TODAY:
             logger.debug("不是该天的数据，停止")
